@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from 'react';
+
+import React, { useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SlideId } from '../types';
 import { DashboardVisual } from './DashboardVisual';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 
 interface VisualizerProps {
   currentSlideId: SlideId;
+  shrinkOnMobile: boolean;
 }
-
-// Helper for random generation
-const randomRange = (min: number, max: number) => Math.random() * (max - min) + min;
 
 interface DataParticleProps {
   laneIndex: number;
@@ -22,10 +22,6 @@ const DataParticle: React.FC<DataParticleProps> = ({
   isHotspot, 
   delay 
 }) => {
-  // If hotspot, everything converges to lane 0 (index 0) center y
-  // Normal: y is based on laneIndex
-  
-  // SVG ViewBox is roughly 0 0 100 100
   const laneHeight = 100 / 5;
   const startY = laneIndex * laneHeight + laneHeight / 2;
   const endY = isHotspot ? (0 * laneHeight + laneHeight / 2) : startY;
@@ -39,11 +35,11 @@ const DataParticle: React.FC<DataParticleProps> = ({
       initial={{ cx: -10, cy: startY, opacity: 0 }}
       animate={{ 
         cx: 110, 
-        cy: [startY, endY, endY], // Curve towards endY
+        cy: [startY, endY, endY],
         opacity: [0, 1, 1, 0]
       }}
       transition={{
-        duration: isHotspot ? 2 : 3, // Slower flow for normal, frantic for hotspot? Actually hotspot causes jam, but visually fast rushing looks chaotic
+        duration: isHotspot ? 2 : 3,
         repeat: Infinity,
         ease: "linear",
         delay: delay,
@@ -97,17 +93,13 @@ const UserJourneyNode: React.FC<UserJourneyNodeProps> = ({ x, y, label, subLabel
       animate={{ opacity: 1, translateY: 0 }}
       transition={{ delay, duration: 0.8 }}
     >
-      {/* Label */}
       <text x={x} y={y - 12} textAnchor="middle" fill="#94a3b8" fontSize="2.5" letterSpacing="0.1em" className="uppercase font-mono" style={{ pointerEvents: 'none' }}>
         {label}
       </text>
-      
-      {/* Sublabel */}
        <text x={x} y={y + 15} textAnchor="middle" fill={color} fontSize="2" className="font-mono" style={{ pointerEvents: 'none' }}>
         {subLabel}
       </text>
 
-      {/* Node Visual */}
       {(type === 'vague' || type === 'clear') && (
         <g>
           <motion.circle cx={x} cy={y} r={8} stroke={color} strokeWidth="0.2" fill="transparent" opacity={0.2} />
@@ -132,7 +124,6 @@ const UserJourneyNode: React.FC<UserJourneyNodeProps> = ({ x, y, label, subLabel
               ))}
             </>
           ) : (
-             // Clear State
              <g>
                 <motion.circle cx={x} cy={y} r={6} stroke={color} strokeWidth="0.5" fill="transparent" 
                    initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5 }}
@@ -157,7 +148,6 @@ const UserJourneyNode: React.FC<UserJourneyNodeProps> = ({ x, y, label, subLabel
               <text x={x} y={y + 2} textAnchor="middle" fill="#94a3b8" fontSize="5" opacity={0.5} className="font-sans">?</text>
             </>
           ) : (
-            // Data State
             <g>
               <motion.rect x={x-4} y={y-4} width={2} height={8} fill={color} initial={{ height: 0, y: y+4 }} animate={{ height: 8, y: y-4 }} transition={{ delay: delay+0.2 }} />
               <motion.rect x={x-1} y={y-6} width={2} height={10} fill={color} initial={{ height: 0, y: y+4 }} animate={{ height: 10, y: y-6 }} transition={{ delay: delay+0.3 }} />
@@ -180,7 +170,6 @@ const UserJourneyNode: React.FC<UserJourneyNodeProps> = ({ x, y, label, subLabel
                 initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ delay: delay + 0.5, duration: 0.5 }}
               />
            ) : (
-              // Fixed State
               <motion.path 
                 d={`M${x-3} ${y} L${x-1} ${y+2} L${x+3} ${y-3}`}
                 stroke={color} strokeWidth="0.8" fill="transparent" strokeLinecap="round" strokeLinejoin="round"
@@ -194,12 +183,9 @@ const UserJourneyNode: React.FC<UserJourneyNodeProps> = ({ x, y, label, subLabel
 }
 
 const UserJourneyVisual = ({ resolved = false }: { resolved?: boolean }) => {
-    // Lifted to y=35 to avoid text overlap
     const yPos = 35; 
-
     return (
         <g>
-            {/* Path Lines */}
             <motion.path 
                 d={`M28 ${yPos} L42 ${yPos}`}
                 stroke={resolved ? "#10b981" : "#334155"} strokeWidth="0.5" strokeDasharray={resolved ? "0" : "2 2"}
@@ -210,92 +196,259 @@ const UserJourneyVisual = ({ resolved = false }: { resolved?: boolean }) => {
                 stroke={resolved ? "#10b981" : "#334155"} strokeWidth="0.5" strokeDasharray={resolved ? "0" : "2 2"}
                 initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ delay: 1.5, duration: 0.5 }}
             />
-
-            <UserJourneyNode 
-              x={20} y={yPos} 
-              label="Detection" 
-              subLabel={resolved ? "Clear Signal" : "Too Vague"} 
-              type={resolved ? 'clear' : 'vague'} 
-              delay={0} 
-            />
-            <UserJourneyNode 
-              x={50} y={yPos} 
-              label="Investigation" 
-              subLabel={resolved ? "Metrics Available" : "No Metrics"} 
-              type={resolved ? 'data' : 'missing'} 
-              delay={1} 
-            />
-            <UserJourneyNode 
-              x={80} y={yPos} 
-              label="Fixing" 
-              subLabel={resolved ? "Actionable" : "Unavailable"} 
-              type={resolved ? 'fixed' : 'blocked'} 
-              delay={2} 
-            />
+            <UserJourneyNode x={20} y={yPos} label="Detection" subLabel={resolved ? "Clear Signal" : "Too Vague"} type={resolved ? 'clear' : 'vague'} delay={0} />
+            <UserJourneyNode x={50} y={yPos} label="Investigation" subLabel={resolved ? "Metrics Available" : "No Metrics"} type={resolved ? 'data' : 'missing'} delay={1} />
+            <UserJourneyNode x={80} y={yPos} label="Fixing" subLabel={resolved ? "Actionable" : "Unavailable"} type={resolved ? 'fixed' : 'blocked'} delay={2} />
         </g>
     )
 }
 
-const HotspotInsightsVisual = () => {
-  // Create a large grid that covers the entire 100x100 viewbox
-  const rows = 20;
-  const cols = 25;
-  const cellW = 105 / cols;
-  const cellH = 105 / rows;
+// Artistic "Key Visualizer" for the Title Slide
+const KeyVisualizerArt = () => {
+  // Generate a composition that mimics the Spanner Key Visualizer spectrogram
+  // Colors: Deep Purple, Violet, Magenta, Bright Yellow, White
+  const rects = useMemo(() => {
+    const r = [];
+    const numRows = 25;
+    
+    // Define a "hot zone" for composition (lower middle)
+    const hotZoneStart = 12;
+    const hotZoneEnd = 18;
+
+    for (let row = 0; row < numRows; row++) {
+      const y = (row / numRows) * 100;
+      const height = 100 / numRows;
+      
+      // Determine "heat" potential of this row based on zone
+      let rowHeatProb = 0.1;
+      if (row >= hotZoneStart && row <= hotZoneEnd) {
+        rowHeatProb = 0.8; // High probability of hot streaks in the zone
+      } else if (row > hotZoneEnd && row < hotZoneEnd + 4) {
+        rowHeatProb = 0.4; // Falloff
+      }
+
+      // Divide row into segments
+      const numSegs = Math.floor(Math.random() * 10) + 10;
+      let currentX = 0;
+      
+      for (let i = 0; i < numSegs; i++) {
+        const width = Math.random() * 15 + 2;
+        if (currentX + width > 100) break;
+
+        // Determine color
+        const rand = Math.random();
+        let color = "#1e0036"; // Default deep purple (cold)
+        let opacity = 0.8;
+
+        if (rand < rowHeatProb) {
+            // It's a hot segment, pick varying degrees of heat
+            const heatLevel = Math.random();
+            if (heatLevel > 0.9) color = "#ffffff"; // White hot
+            else if (heatLevel > 0.6) color = "#ffb700"; // Yellow
+            else if (heatLevel > 0.3) color = "#d946ef"; // Magenta/Pink
+            else color = "#7c3aed"; // Violet
+            
+            opacity = 1;
+        } else {
+            // Cold segment
+             color = Math.random() > 0.5 ? "#3b0764" : "#1e0036";
+             opacity = 0.5;
+        }
+
+        r.push({
+          id: `${row}-${i}`,
+          x: currentX,
+          y,
+          width,
+          height: height * 0.9, // slight gap
+          color,
+          opacity,
+          isHot: color === "#ffffff" || color === "#ffb700"
+        });
+
+        currentX += width + 0.2; // gap
+      }
+    }
+    return r;
+  }, []);
 
   return (
-    <g transform="translate(-2, -2)"> 
-      {Array.from({ length: rows }).map((_, row) => (
-        Array.from({ length: cols }).map((_, col) => {
-          // Create a hotspot area roughly in the center-right, 
-          // representing a "shard" or specific key range that is hot
-          const isHotrow = row >= 4 && row <= 16;
-          const isHotcol = col >= 14 && col <= 18;
-          const isHot = isHotrow && isHotcol;
-          
-          // Edge fade logic
-          const isEdge = row === 0 || row === rows - 1 || col === 0 || col === cols - 1;
-          
-          return (
-            <motion.rect
-                key={`${row}-${col}`}
-                x={col * cellW}
-                y={row * cellH}
-                width={cellW - 0.2}
-                height={cellH - 0.2}
-                fill={isHot ? "#ef4444" : "#1e293b"} 
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ 
-                    opacity: isEdge ? 0.1 : (isHot ? [0.8, 1, 0.8] : [0.2, 0.4, 0.2]),
-                    scale: isHot ? [0.95, 1.05, 0.95] : 1
-                }}
-                transition={{ 
-                    duration: 2 + Math.random(), 
-                    repeat: Infinity, 
-                    delay: (col + row) * 0.05 // Wave effect entrance
-                }}
-                rx="0.5"
-            />
-          );
-        })
+    <g>
+      {rects.map((rect, i) => (
+        <motion.rect
+          key={rect.id}
+          x={rect.x}
+          y={rect.y}
+          width={rect.width}
+          height={rect.height}
+          fill={rect.color}
+          opacity={rect.opacity}
+          initial={{ opacity: 0, x: rect.x - 10 }}
+          animate={{ 
+            opacity: rect.isHot ? [rect.opacity, 1, rect.opacity] : rect.opacity,
+            x: rect.x
+          }}
+          transition={{
+            opacity: { duration: rect.isHot ? 0.2 : 2, repeat: Infinity, repeatType: "reverse", delay: Math.random() * 2 },
+            x: { duration: 1.5, ease: "easeOut", delay: i * 0.005 }
+          }}
+        />
       ))}
-      
-      {/* Optional: A subtle scanning line to suggest real-time monitoring */}
-      <motion.line
-         x1="0" y1="0" x2="100" y2="0"
-         stroke="#f59e0b" strokeWidth="0.2" strokeOpacity="0.5"
-         animate={{ y1: [0, 100], y2: [0, 100] }}
-         transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
-      />
+      {/* Overlay subtle grid lines for technical look */}
+      <rect x="0" y="0" width="100" height="100" fill="url(#gridPattern)" opacity="0.1" pointerEvents="none"/>
+      <defs>
+        <pattern id="gridPattern" width="10" height="10" patternUnits="userSpaceOnUse">
+          <path d="M 10 0 L 0 0 0 10" fill="none" stroke="white" strokeWidth="0.5"/>
+        </pattern>
+      </defs>
     </g>
   );
 };
 
+// New Visual for the Observability Slide
+const ObservabilityVisual = () => {
+  const words = ["MANAGED", "DATABASE", "OBSERVABILITY"];
+  
+  return (
+    <div className="w-full h-full flex flex-col items-center justify-center md:items-end md:pr-32 relative">
+      {/* Abstract Background Graphic: Concentric pulsing rings suggesting a lens/eye */}
+      <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-30 md:translate-x-[20%] transition-transform duration-1000">
+        <defs>
+           <radialGradient id="lensGrad" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+              <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.2" />
+              <stop offset="100%" stopColor="#06b6d4" stopOpacity="0" />
+           </radialGradient>
+        </defs>
+        <circle cx="50%" cy="50%" r="30%" fill="url(#lensGrad)" />
+        {[1, 2, 3].map(i => (
+          <motion.circle 
+            key={i}
+            cx="50%" cy="50%" r={`${15 * i}%`}
+            stroke="#06b6d4" strokeWidth="0.5" fill="none"
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1.1, opacity: [0, 0.3, 0] }}
+            transition={{ duration: 4, repeat: Infinity, delay: i * 1.2, ease: "easeInOut" }}
+          />
+        ))}
+        {/* Data stream lines */}
+         <motion.path 
+           d="M0 50 H100" stroke="#06b6d4" strokeWidth="0.2" strokeDasharray="5 5"
+           initial={{ opacity: 0 }} animate={{ opacity: 0.2 }}
+         />
+      </svg>
 
-export const Visualizer: React.FC<VisualizerProps> = ({ currentSlideId }) => {
+      {/* Floating Text */}
+      <div className="z-10 flex flex-col items-center gap-2 md:gap-6 md:items-end">
+        {words.map((word, i) => (
+          <motion.h1
+            key={word}
+            className="text-4xl md:text-7xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-cyan-200 to-cyan-600 filter drop-shadow-lg"
+            initial={{ opacity: 0, y: 50, filter: 'blur(10px)' }}
+            animate={{ 
+              opacity: 1, 
+              y: 0, 
+              filter: 'blur(0px)',
+              transition: { 
+                duration: 0.8, 
+                delay: i * 0.6,
+                ease: "easeOut" 
+              } 
+            }}
+            whileInView={{
+               y: [0, -10, 0],
+               transition: {
+                  duration: 4,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: 1 + (i * 0.5) // Offset the float
+               }
+            }}
+          >
+            {word}
+          </motion.h1>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Recreated Hotspot Insights Dashboard for the Solution Slide
+const HotspotInsightsVisual = ({ compact }: { compact: boolean }) => {
+    const chartData = [
+        { time: '9:00', val: 0 },
+        { time: '9:05', val: 0 },
+        { time: '9:10', val: 60 }, 
+        { time: '9:15', val: 0 },
+        { time: '9:30', val: 0 },
+        { time: '9:35', val: 55 }, 
+        { time: '9:40', val: 85 }, 
+        { time: '9:45', val: 0 },
+        { time: '9:50', val: 45 }, 
+        { time: '9:55', val: 50 },
+        { time: '10:00', val: 0 },
+    ];
+
+    return (
+        <div className={`w-full h-full bg-[#0F172A] flex flex-col font-sans transition-all duration-1000 ${compact ? 'p-4 md:py-12 md:pr-12 md:pl-[35%]' : 'p-6 md:py-12 md:pr-12 md:pl-[35%]'}`}>
+            {/* Title Mock */}
+            <div className={`flex items-center justify-between border-b border-slate-800 transition-all duration-1000 ${compact ? 'mb-2 pb-2 pt-4 md:mb-8 md:pb-4 md:pt-0' : 'mb-8 pb-4 pt-12 md:pt-0'}`}>
+                <div className={`text-slate-200 font-medium transition-all ${compact ? 'text-sm md:text-lg' : 'text-lg'}`}>Peak split CPU usage score</div>
+                <div className="flex gap-4">
+                     <div className={`rounded bg-slate-800 transition-all ${compact ? 'w-4 h-4 md:w-6 md:h-6' : 'w-6 h-6'}`}></div>
+                     <div className={`rounded bg-slate-800 transition-all ${compact ? 'w-4 h-4 md:w-6 md:h-6' : 'w-6 h-6'}`}></div>
+                </div>
+            </div>
+
+            {/* Chart */}
+            <div className={`flex-1 min-h-0 relative transition-all duration-1000 ${compact ? 'mb-0 md:mb-8' : 'mb-8'}`}>
+                <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={chartData}>
+                        <defs>
+                             <linearGradient id="hotspotGradient" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                            </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+                         <XAxis dataKey="time" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
+                         <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} domain={[0, 100]} />
+                         <Area type="monotone" dataKey="val" stroke="#3b82f6" strokeWidth={2} fill="url(#hotspotGradient)" />
+                    </AreaChart>
+                </ResponsiveContainer>
+            </div>
+
+            {/* Table Mock - Always hidden on small mobile, visible on md */}
+             <div className="h-1/3 hidden md:block">
+                <div className="text-slate-200 text-lg font-medium mb-4">TopN splits</div>
+                <div className="w-full border-t border-slate-800">
+                    <div className="grid grid-cols-4 gap-4 py-3 border-b border-slate-800 text-slate-500 text-xs uppercase tracking-wider">
+                        <div>Interval end</div>
+                        <div>Split start</div>
+                        <div>Split limit</div>
+                        <div>CPU Score</div>
+                    </div>
+                     {/* Rows */}
+                     {[
+                         { end: '9:03:00 AM', score: 39 },
+                         { end: '9:04:00 AM', score: 69 },
+                         { end: '9:05:00 AM', score: 85 },
+                     ].map((row, i) => (
+                         <div key={i} className="grid grid-cols-4 gap-4 py-3 border-b border-slate-800/50 text-slate-400 text-sm font-mono">
+                             <div>{row.end}</div>
+                             <div className="text-slate-600">&lt;begin&gt;</div>
+                             <div className="text-slate-600">&lt;end&gt;</div>
+                             <div className="text-slate-200">{row.score}</div>
+                         </div>
+                     ))}
+                </div>
+             </div>
+        </div>
+    )
+}
+
+export const Visualizer: React.FC<VisualizerProps> = ({ currentSlideId, shrinkOnMobile }) => {
   const [particles, setParticles] = useState<any[]>([]);
 
-  // Generate particles for Premise/Hotspot slides
   useEffect(() => {
     const count = 40;
     const newParticles = [];
@@ -309,18 +462,21 @@ export const Visualizer: React.FC<VisualizerProps> = ({ currentSlideId }) => {
     setParticles(newParticles);
   }, []);
 
+  // Dark Purple background for Title slide to match Key Visualizer aesthetic
+  const bgClass = currentSlideId === SlideId.TITLE 
+    ? 'bg-[#0B0014]' 
+    : 'bg-gradient-to-br from-slate-900 to-black';
+
   return (
-    <div className="absolute inset-0 w-full h-full overflow-hidden bg-gradient-to-br from-slate-900 to-black z-0">
-      {/* Background Grid Subtle - Only show on slides that don't have the full screen heatmap */}
-      {currentSlideId !== SlideId.SOLUTION && (
+    <div className={`absolute top-0 left-0 w-full overflow-hidden z-0 transition-[height,background-color] duration-1000 ease-in-out ${shrinkOnMobile ? 'h-[45%] md:h-full' : 'h-full'} ${bgClass}`}>
+      {/* Background Grid - Hidden on Solution/Title where we have custom full graphics */}
+      {currentSlideId !== SlideId.SOLUTION && currentSlideId !== SlideId.TITLE && currentSlideId !== SlideId.OBSERVABILITY && (
         <div className="absolute inset-0 opacity-20" 
           style={{ backgroundImage: 'radial-gradient(#475569 1px, transparent 1px)', backgroundSize: '30px 30px' }}>
         </div>
       )}
 
-      <div className="w-full h-full relative flex items-center justify-center">
-        
-        {/* Render Chart for Catalyst Slide */}
+      <div className="w-full h-full relative flex items-center justify-center md:justify-end md:pr-12">
         <AnimatePresence mode="wait">
             {currentSlideId === SlideId.CATALYST && (
               <motion.div 
@@ -329,23 +485,56 @@ export const Visualizer: React.FC<VisualizerProps> = ({ currentSlideId }) => {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 1.1 }}
                 transition={{ duration: 0.5 }}
-                className="w-full max-w-3xl h-3/4 p-4 z-10"
+                className="w-full max-w-3xl h-3/4 p-4 z-10 md:mr-12"
               >
                 <DashboardVisual />
               </motion.div>
             )}
+
+            {/* New Observability Visual */}
+            {currentSlideId === SlideId.OBSERVABILITY && (
+              <motion.div
+                key="observability"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 1 }}
+                className="absolute inset-0 w-full h-full z-10"
+              >
+                <ObservabilityVisual />
+              </motion.div>
+            )}
+
+            {/* Render High-Fidelity Mockup for Solution Slide */}
+            {currentSlideId === SlideId.SOLUTION && (
+              <motion.div 
+                key="solution-mockup"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 1 }}
+                className="absolute inset-0 w-full h-full z-0"
+              >
+                <HotspotInsightsVisual compact={shrinkOnMobile} />
+                {/* Overlay Gradients to blend image into background and ensure text readability */}
+                <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/70 to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent pointer-events-none" />
+              </motion.div>
+            )}
         </AnimatePresence>
 
-        {/* SVG Overlay for Abstract Visuals */}
-        {currentSlideId !== SlideId.CATALYST && (
+        {currentSlideId !== SlideId.CATALYST && currentSlideId !== SlideId.SOLUTION && currentSlideId !== SlideId.OBSERVABILITY && (
           <motion.svg 
             viewBox="0 0 100 100" 
-            className="w-full h-full max-w-5xl max-h-screen absolute opacity-80"
+            className="w-full h-full max-w-5xl max-h-screen absolute opacity-80 transition-transform duration-500 md:translate-x-[25%]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            {/* Slide 0: Premise (Green Flow) */}
+            {currentSlideId === SlideId.TITLE && (
+              <KeyVisualizerArt />
+            )}
+
             {currentSlideId === SlideId.PREMISE && (
               <g>
                 {[10, 30, 50, 70, 90].map((y, i) => (
@@ -357,19 +546,15 @@ export const Visualizer: React.FC<VisualizerProps> = ({ currentSlideId }) => {
               </g>
             )}
 
-            {/* Slide 1: Hotspot (Red Convergence) */}
             {currentSlideId === SlideId.HOTSPOT && (
               <g>
                  {[10, 30, 50, 70, 90].map((y, i) => (
                    <line key={i} x1="0" y1={y} x2="100" y2={y} stroke="#334155" strokeWidth="0.5" strokeDasharray="2 2" />
                 ))}
-                {/* Highlight Lane 1 */}
                 <rect x="0" y="0" width="100" height="20" fill="#ef4444" fillOpacity="0.1" />
-                
                 {particles.map(p => (
                   <DataParticle key={p.id} laneIndex={p.laneIndex} isHotspot={true} delay={p.delay} />
                 ))}
-                {/* Warning Icon Pulse */}
                 <motion.circle cx="50" cy="10" r="5" fill="#ef4444" opacity="0.5"
                    animate={{ scale: [1, 1.5, 1], opacity: [0.2, 0.6, 0.2] }}
                    transition={{ duration: 1, repeat: Infinity }}
@@ -377,14 +562,11 @@ export const Visualizer: React.FC<VisualizerProps> = ({ currentSlideId }) => {
               </g>
             )}
 
-            {/* Slide 3: Action (Network Graph) */}
             {currentSlideId === SlideId.ACTION && (
               <g>
-                {/* Central Researcher */}
                 <motion.circle cx="50" cy="50" r="5" fill="#fff" 
                   initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ duration: 0.5 }}
                 />
-                {/* Connected Users */}
                 <ResearchNode x={20} y={20} delay={0.2} connectToCenter />
                 <ResearchNode x={80} y={20} delay={0.4} connectToCenter />
                 <ResearchNode x={20} y={80} delay={0.6} connectToCenter />
@@ -393,16 +575,9 @@ export const Visualizer: React.FC<VisualizerProps> = ({ currentSlideId }) => {
               </g>
             )}
 
-            {/* Slide 4: Impact (User Journey Gaps) */}
             {currentSlideId === SlideId.IMPACT && (
                <UserJourneyVisual resolved={false} />
             )}
-
-            {/* Slide 5: Solution (Full Screen Heatmap) */}
-            {currentSlideId === SlideId.SOLUTION && (
-               <HotspotInsightsVisual />
-            )}
-
           </motion.svg>
         )}
       </div>

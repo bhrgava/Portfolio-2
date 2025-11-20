@@ -1,4 +1,7 @@
+
 export enum SlideId {
+  TITLE = 'title',
+  OBSERVABILITY = 'observability',
   PREMISE = 'premise',
   HOTSPOT = 'hotspot',
   CATALYST = 'catalyst',

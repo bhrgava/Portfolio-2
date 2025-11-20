@@ -1,6 +1,31 @@
+
 import { SlideData, SlideId } from './types';
 
 export const SLIDES: SlideData[] = [
+  {
+    id: SlideId.TITLE,
+    title: "Project Overview",
+    subtitle: "Spanner Hotspots Case Study",
+    description: "Revealing the invisible mechanics of database latency.",
+    details: [
+      "UX Research",
+      "Data Visualization",
+      "System Design",
+    ],
+    textDelay: 2.5,
+  },
+  {
+    id: SlideId.OBSERVABILITY,
+    title: "The Context",
+    subtitle: "A crucial capability.",
+    description: "Before diving into the problem, it is essential to understand the goal: providing clarity into complex, distributed systems where issues are often invisible.",
+    details: [
+      "System Health",
+      "Performance Metrics",
+      "Root Cause Analysis",
+    ],
+    textDelay: 3.5,
+  },
   {
     id: SlideId.PREMISE,
     title: "The Distributed Premise",
@@ -11,7 +36,7 @@ export const SLIDES: SlideData[] = [
       "Automatic Sharding",
       "Balanced Load",
     ],
-    textDelay: 1.0,
+    textDelay: 2.5,
   },
   {
     id: SlideId.HOTSPOT,
@@ -23,19 +48,19 @@ export const SLIDES: SlideData[] = [
       "System Overload",
       "Invisible Imbalance",
     ],
-    textDelay: 1.0,
+    textDelay: 2.5,
   },
   {
     id: SlideId.CATALYST,
     title: "The Catalyst",
     subtitle: "Latency without clear cause.",
-    description: "Users reported high latency and stalled operations but couldn't find the root cause. To them, 'the store was slow,' but the reality was a hidden hotspot.",
+    description: "The topic of hotspotting came to research due to a rise in number of customer tickets related to this problem. Users reported high latency and stalled operations but couldn't find the root cause. We wanted to help them troubleshoot this problem for themselves.",
     details: [
       "Spike in Bug Reports",
       "Unresolved Tickets",
       "High Read/Write Latency",
     ],
-    textDelay: 0.8,
+    textDelay: 2.0,
   },
   {
     id: SlideId.ACTION,
@@ -47,7 +72,7 @@ export const SLIDES: SlideData[] = [
       "Convenience Sampling",
       "Journey Mapping",
     ],
-    textDelay: 1.5,
+    textDelay: 2.5,
   },
   {
     id: SlideId.IMPACT,
@@ -59,7 +84,7 @@ export const SLIDES: SlideData[] = [
       "Investigation: No Data",
       "Fixing: Blocked",
     ],
-    textDelay: 2.5,
+    textDelay: 3.5,
   },
   {
     id: SlideId.SOLUTION,

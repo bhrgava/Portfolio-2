@@ -1,10 +1,13 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Visualizer } from './components/Visualizer';
 import { StoryOverlay } from './components/StoryOverlay';
 import { SLIDES } from './constants';
 
 const App: React.FC = () => {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const [showMobileLayout, setShowMobileLayout] = useState(false);
+
+  const currentSlide = SLIDES[currentSlideIndex];
 
   const nextSlide = useCallback(() => {
     setCurrentSlideIndex((prev) => Math.min(prev + 1, SLIDES.length - 1));
@@ -20,8 +23,23 @@ const App: React.FC = () => {
      }
   }, []);
 
+  // Handle layout transition timer based on current slide's delay
+  useEffect(() => {
+    // Reset to full screen immediately when slide changes
+    setShowMobileLayout(false);
+
+    // Wait for the text delay (animation time) before shrinking the graphic
+    const delayTime = (currentSlide.textDelay || 0.5) * 1000;
+    
+    const timer = setTimeout(() => {
+      setShowMobileLayout(true);
+    }, delayTime);
+
+    return () => clearTimeout(timer);
+  }, [currentSlideIndex, currentSlide.textDelay]);
+
   // Keyboard navigation
-  React.useEffect(() => {
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight') nextSlide();
       if (e.key === 'ArrowLeft') prevSlide();
@@ -30,12 +48,13 @@ const App: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [nextSlide, prevSlide]);
 
-  const currentSlide = SLIDES[currentSlideIndex];
-
   return (
-    <main className="relative w-screen h-screen overflow-hidden bg-black text-white">
+    <main className="relative w-screen h-[100dvh] overflow-hidden bg-black text-white">
       {/* The Visual Background Layer */}
-      <Visualizer currentSlideId={currentSlide.id} />
+      <Visualizer 
+        currentSlideId={currentSlide.id} 
+        shrinkOnMobile={showMobileLayout}
+      />
 
       {/* The UI Overlay Layer */}
       <StoryOverlay 

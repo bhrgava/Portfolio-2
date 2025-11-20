@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Database, Zap, AlertTriangle, Search, CheckCircle, ExternalLink, Sparkles } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Database, Zap, AlertTriangle, Search, CheckCircle, ExternalLink, Sparkles, LayoutGrid, Activity } from 'lucide-react';
 import { SlideData, SlideId } from '../types';
 
 interface StoryOverlayProps {
@@ -14,6 +15,8 @@ interface StoryOverlayProps {
 
 const getIcon = (id: SlideId) => {
   switch (id) {
+    case SlideId.TITLE: return <LayoutGrid className="w-10 h-10 text-white" />;
+    case SlideId.OBSERVABILITY: return <Activity className="w-10 h-10 text-cyan-400" />;
     case SlideId.PREMISE: return <Database className="w-10 h-10 text-emerald-400" />;
     case SlideId.HOTSPOT: return <Zap className="w-10 h-10 text-red-500" />;
     case SlideId.CATALYST: return <AlertTriangle className="w-10 h-10 text-amber-500" />;
@@ -32,8 +35,10 @@ export const StoryOverlay: React.FC<StoryOverlayProps> = ({
   onPrev,
   setSlide
 }) => {
+  const isTitle = currentSlide.id === SlideId.TITLE;
+
   return (
-    <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-6 md:p-12 z-20">
+    <div className="absolute inset-0 pointer-events-none flex flex-col justify-between px-6 pt-6 pb-24 md:p-12 z-20">
       
       {/* Header / Progress */}
       <div className="w-full flex justify-between items-start pointer-events-auto">
@@ -60,7 +65,8 @@ export const StoryOverlay: React.FC<StoryOverlayProps> = ({
       </div>
 
       {/* Main Content Card */}
-      <div className="flex-1 flex items-center md:items-end md:mb-12">
+      {/* Changed alignment from items-center to items-end to push content to bottom on mobile */}
+      <div className="flex-1 flex items-end md:items-end md:mb-12 pb-8 md:pb-0">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentSlide.id}
@@ -76,7 +82,8 @@ export const StoryOverlay: React.FC<StoryOverlayProps> = ({
               delay: currentSlide.textDelay ?? 0.5, // Delay entrance based on slide
               ease: "easeOut" 
             }}
-            className="bg-slate-950/80 backdrop-blur-md border border-slate-800 p-8 rounded-2xl max-w-xl w-full shadow-2xl pointer-events-auto"
+            // Conditionally make the card much wider for the Title slide
+            className={`bg-slate-950/80 backdrop-blur-md border border-slate-800 p-8 rounded-2xl ${isTitle ? 'max-w-4xl' : 'max-w-xl'} w-full shadow-2xl pointer-events-auto`}
           >
             <div className="flex items-center gap-4 mb-4">
               <div className="p-3 bg-slate-900 rounded-lg border border-slate-700">
@@ -86,13 +93,13 @@ export const StoryOverlay: React.FC<StoryOverlayProps> = ({
                 <h4 className="text-slate-400 text-sm font-bold uppercase tracking-wider">
                   {currentSlide.title}
                 </h4>
-                <h2 className="text-2xl md:text-3xl font-bold text-white leading-tight">
+                <h2 className={`font-bold text-white leading-tight ${isTitle ? 'text-4xl md:text-5xl' : 'text-2xl md:text-3xl'}`}>
                   {currentSlide.subtitle}
                 </h2>
               </div>
             </div>
             
-            <p className="text-slate-300 text-lg leading-relaxed mb-6">
+            <p className={`text-slate-300 leading-relaxed mb-6 ${isTitle ? 'text-xl md:text-2xl' : 'text-lg'}`}>
               {currentSlide.description}
             </p>
 
