@@ -5,7 +5,6 @@ export enum SlideId {
   PREMISE = 'premise',
   HOTSPOT = 'hotspot',
   METHODOLOGY = 'methodology',
-  CATALYST = 'catalyst',
   ACTION = 'action',
   IMPACT = 'impact',
   IMPLEMENTATION = 'implementation',
@@ -20,4 +19,11 @@ export interface SlideData {
   details: string[];
   textDelay?: number;
   link?: string;
+}
+
+export interface CaseStudy {
+  id: string;
+  title: string;
+  year: string;
+  slides: SlideData[];
 }

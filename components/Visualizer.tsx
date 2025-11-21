@@ -1,8 +1,6 @@
-
 import React, { useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SlideId } from '../types';
-import { DashboardVisual } from './DashboardVisual';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 
 interface VisualizerProps {
@@ -657,18 +655,6 @@ export const Visualizer: React.FC<VisualizerProps> = ({ currentSlideId, shrinkOn
       */}
       <div className={`w-full h-full relative flex items-center ${currentSlideId === SlideId.METHODOLOGY || currentSlideId === SlideId.IMPLEMENTATION ? 'md:justify-center' : 'md:justify-end md:pr-12'} justify-center`}>
         <AnimatePresence mode="wait">
-            {currentSlideId === SlideId.CATALYST && (
-              <motion.div 
-                key="dashboard"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 1.1 }}
-                transition={{ duration: 0.5 }}
-                className="w-full max-w-3xl h-3/4 p-4 z-10 md:mr-12"
-              >
-                <DashboardVisual />
-              </motion.div>
-            )}
 
             {/* New Observability Visual */}
             {currentSlideId === SlideId.OBSERVABILITY && (
@@ -730,7 +716,7 @@ export const Visualizer: React.FC<VisualizerProps> = ({ currentSlideId, shrinkOn
             )}
         </AnimatePresence>
 
-        {currentSlideId !== SlideId.CATALYST && currentSlideId !== SlideId.SOLUTION && currentSlideId !== SlideId.OBSERVABILITY && currentSlideId !== SlideId.METHODOLOGY && currentSlideId !== SlideId.IMPLEMENTATION && (
+        {currentSlideId !== SlideId.SOLUTION && currentSlideId !== SlideId.OBSERVABILITY && currentSlideId !== SlideId.METHODOLOGY && currentSlideId !== SlideId.IMPLEMENTATION && (
           <motion.svg 
             viewBox="0 0 100 100" 
             className="w-full h-full max-w-5xl max-h-screen absolute opacity-80 transition-transform duration-500 md:translate-x-[25%]"

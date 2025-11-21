@@ -1,7 +1,7 @@
 
-import { SlideData, SlideId } from './types';
+import { CaseStudy, SlideId } from './types';
 
-export const SLIDES: SlideData[] = [
+const SPANNER_SLIDES = [
   {
     id: SlideId.TITLE,
     title: "Project Overview",
@@ -59,18 +59,6 @@ export const SLIDES: SlideData[] = [
     textDelay: 3.0,
   },
   {
-    id: SlideId.CATALYST,
-    title: "The Catalyst",
-    subtitle: "Latency without clear cause.",
-    description: "The topic of hotspotting came to research due to a rise in number of customer tickets related to this problem. Users reported high latency and stalled operations but couldn't find the root cause. We wanted to help them troubleshoot this problem for themselves.",
-    details: [
-      "Spike in Bug Reports",
-      "Unresolved Tickets",
-      "High Read/Write Latency",
-    ],
-    textDelay: 2.0,
-  },
-  {
     id: SlideId.ACTION,
     title: "The Action",
     subtitle: "Qualitative Foundational Research.",
@@ -115,4 +103,13 @@ export const SLIDES: SlideData[] = [
     textDelay: 2.0,
     link: "https://docs.cloud.google.com/spanner/docs/find-hotspots-in-database"
   },
+];
+
+export const CASE_STUDIES: CaseStudy[] = [
+  {
+    id: 'spanner',
+    title: 'Spanner Hotspots',
+    year: '2022',
+    slides: SPANNER_SLIDES
+  }
 ];

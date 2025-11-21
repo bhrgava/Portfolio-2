@@ -1,27 +1,36 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { Visualizer } from './components/Visualizer';
 import { StoryOverlay } from './components/StoryOverlay';
-import { SLIDES } from './constants';
+import { CASE_STUDIES } from './constants';
 
 const App: React.FC = () => {
+  const [activeCaseStudyIndex, setActiveCaseStudyIndex] = useState(0);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [showMobileLayout, setShowMobileLayout] = useState(false);
 
-  const currentSlide = SLIDES[currentSlideIndex];
+  const activeCaseStudy = CASE_STUDIES[activeCaseStudyIndex];
+  const slides = activeCaseStudy.slides;
+  const currentSlide = slides[currentSlideIndex];
+
+  const handleCaseStudyChange = useCallback((index: number) => {
+    setActiveCaseStudyIndex(index);
+    setCurrentSlideIndex(0); // Reset to start of new story
+  }, []);
 
   const nextSlide = useCallback(() => {
-    setCurrentSlideIndex((prev) => Math.min(prev + 1, SLIDES.length - 1));
-  }, []);
+    setCurrentSlideIndex((prev) => Math.min(prev + 1, slides.length - 1));
+  }, [slides.length]);
 
   const prevSlide = useCallback(() => {
     setCurrentSlideIndex((prev) => Math.max(prev - 1, 0));
   }, []);
 
   const setSlide = useCallback((index: number) => {
-     if(index >= 0 && index < SLIDES.length) {
+     if(index >= 0 && index < slides.length) {
         setCurrentSlideIndex(index);
      }
-  }, []);
+  }, [slides.length]);
 
   // Handle layout transition timer based on current slide's delay
   useEffect(() => {
@@ -36,7 +45,7 @@ const App: React.FC = () => {
     }, delayTime);
 
     return () => clearTimeout(timer);
-  }, [currentSlideIndex, currentSlide.textDelay]);
+  }, [currentSlideIndex, activeCaseStudyIndex, currentSlide.textDelay]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -60,10 +69,13 @@ const App: React.FC = () => {
       <StoryOverlay 
         currentSlide={currentSlide}
         currentSlideIndex={currentSlideIndex}
-        totalSlides={SLIDES.length}
+        totalSlides={slides.length}
         onNext={nextSlide}
         onPrev={prevSlide}
         setSlide={setSlide}
+        caseStudies={CASE_STUDIES}
+        activeCaseStudyIndex={activeCaseStudyIndex}
+        onSelectCaseStudy={handleCaseStudyChange}
       />
     </main>
   );
