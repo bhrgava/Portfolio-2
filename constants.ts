@@ -51,6 +51,14 @@ export const SLIDES: SlideData[] = [
     textDelay: 2.5,
   },
   {
+    id: SlideId.METHODOLOGY,
+    title: "The Process",
+    subtitle: "Research Timeline",
+    description: "A rigorous, multi-phase approach to understanding the invisible.",
+    details: [],
+    textDelay: 3.0,
+  },
+  {
     id: SlideId.CATALYST,
     title: "The Catalyst",
     subtitle: "Latency without clear cause.",
@@ -85,6 +93,14 @@ export const SLIDES: SlideData[] = [
       "Fixing: Blocked",
     ],
     textDelay: 3.5,
+  },
+  {
+    id: SlideId.IMPLEMENTATION,
+    title: "The Execution",
+    subtitle: "Implementation Timeline",
+    description: "Translating insights into engineering reality through cross-functional collaboration.",
+    details: [],
+    textDelay: 3.0,
   },
   {
     id: SlideId.SOLUTION,

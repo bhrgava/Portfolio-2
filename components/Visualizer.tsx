@@ -372,6 +372,121 @@ const ObservabilityVisual = () => {
   );
 };
 
+// Timeline Visual for Methodology and Implementation Slides
+interface TimelineEvent {
+  title: string;
+  date: string;
+  desc: string;
+}
+
+const TimelineVisual = ({ events, themeColor }: { events: TimelineEvent[], themeColor: 'indigo' | 'emerald' }) => {
+  // Theme config
+  const colors = {
+    indigo: {
+      line: 'bg-indigo-500',
+      shadow: 'shadow-[0_0_20px_rgba(99,102,241,0.5)]',
+      border: 'border-indigo-500',
+      bg: 'bg-indigo-400',
+      badge: 'bg-indigo-900/50 text-indigo-300 border-indigo-500/30',
+      fill: 'bg-indigo-200',
+      gradient: 'from-indigo-500'
+    },
+    emerald: {
+      line: 'bg-emerald-500',
+      shadow: 'shadow-[0_0_20px_rgba(16,185,129,0.5)]',
+      border: 'border-emerald-500',
+      bg: 'bg-emerald-400',
+      badge: 'bg-emerald-900/50 text-emerald-300 border-emerald-500/30',
+      fill: 'bg-emerald-200',
+      gradient: 'from-emerald-500'
+    }
+  };
+  
+  const t = colors[themeColor];
+
+  return (
+    // Centered layout for timeline, full screen
+    <div className="w-full h-full flex items-center justify-center p-6 md:p-12 overflow-y-auto md:overflow-hidden">
+      <div className="relative flex flex-col md:flex-row items-start md:items-center justify-between w-full max-w-7xl gap-8 md:gap-4 min-h-[80vh] md:min-h-0 pt-12 md:pt-0">
+        
+        {/* Horizontal Line (Desktop) */}
+        <div className="hidden md:block absolute top-1/2 left-0 w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+           <motion.div 
+             className={`h-full ${t.line} ${t.shadow}`}
+             initial={{ width: 0 }}
+             animate={{ width: "100%" }}
+             transition={{ duration: 4, ease: "easeInOut" }}
+           />
+        </div>
+
+         {/* Vertical Line (Mobile) */}
+        <div className="md:hidden absolute left-4 top-0 h-full w-1 bg-slate-800 rounded-full overflow-hidden">
+           <motion.div 
+             className={`w-full ${t.line}`}
+             initial={{ height: 0 }}
+             animate={{ height: "100%" }}
+             transition={{ duration: 4, ease: "easeInOut" }}
+           />
+        </div>
+
+        {events.map((event, index) => (
+          <div key={index} className="relative z-10 flex md:flex-col items-start md:items-center flex-1 gap-4 md:gap-0 h-full justify-center">
+            
+            {/* Node */}
+            <motion.div 
+              className={`relative w-10 h-10 md:w-6 md:h-6 rounded-full bg-slate-950 border-2 md:border-4 ${t.border} flex items-center justify-center shrink-0 shadow-xl z-20`}
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.5 + (index * 0.6), type: "spring", stiffness: 200 }}
+            >
+               <motion.div 
+                 className={`absolute inset-0 rounded-full ${t.bg} opacity-40`}
+                 animate={{ scale: [1, 1.8, 1], opacity: [0.4, 0, 0.4] }}
+                 transition={{ duration: 2, repeat: Infinity }}
+               />
+               <div className={`w-2 h-2 ${t.fill} rounded-full hidden md:block shadow-inner`} />
+            </motion.div>
+
+            {/* Content Card */}
+            <motion.div
+              className={`
+                flex-1 md:absolute bg-slate-900/90 backdrop-blur-md border border-slate-700 p-4 rounded-xl w-full md:w-56 shadow-2xl
+                ${index % 2 === 0 ? 'md:-top-44' : 'md:top-16'} 
+              `}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8 + (index * 0.6) }}
+            >
+               <div className="flex items-center justify-between mb-2">
+                  {event.date && (
+                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide border ${t.badge}`}>
+                        {event.date}
+                     </span>
+                  )}
+                  {!event.date && <span className="w-2 h-2"></span>} {/* Spacer */}
+               </div>
+               <h3 className="text-white font-bold text-sm md:text-base mb-1 leading-tight">{event.title}</h3>
+               <p className="text-slate-400 text-xs leading-relaxed">{event.desc}</p>
+               
+               {/* Connector line for desktop cards */}
+               <motion.div 
+                 className={`
+                   hidden md:block absolute left-1/2 -translate-x-1/2 w-0.5 bg-gradient-to-b ${t.gradient} to-transparent opacity-50
+                   ${index % 2 === 0 ? '-bottom-12 h-12' : '-top-12 h-12'}
+                 `} 
+                 initial={{ scaleY: 0 }}
+                 animate={{ scaleY: 1 }}
+                 style={{ originY: index % 2 === 0 ? 0 : 1 }}
+                 transition={{ delay: 1 + (index * 0.6), duration: 0.4 }}
+               />
+            </motion.div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 // Recreated Hotspot Insights Dashboard for the Solution Slide
 const HotspotInsightsVisual = ({ compact }: { compact: boolean }) => {
     const chartData = [
@@ -467,16 +582,80 @@ export const Visualizer: React.FC<VisualizerProps> = ({ currentSlideId, shrinkOn
     ? 'bg-[#0B0014]' 
     : 'bg-gradient-to-br from-slate-900 to-black';
 
+  // Force disable shrinkOnMobile for timeline slides so they use full height
+  const effectiveShrinkOnMobile = (currentSlideId === SlideId.METHODOLOGY || currentSlideId === SlideId.IMPLEMENTATION) ? false : shrinkOnMobile;
+
+  // Define timeline data
+  const methodologyEvents = [
+    { 
+      title: "Identifying the problem", 
+      date: "Nov 2022",
+      desc: "Uptick in customer tickets where the root cause was hotspotting. Users faced prod issues without ability to troubleshoot." 
+    },
+    { 
+      title: "Literature Review", 
+      date: "Nov 2022",
+      desc: "Reviewing past work showed little existing research, relying mostly on anecdotal stories from engineers." 
+    },
+    { 
+      title: "Research Goal", 
+      date: "",
+      desc: "Understand key user needs and evaluate whether improving current tools would solve the core problem." 
+    },
+    { 
+      title: "Collecting Data", 
+      date: "Jan 2023",
+      desc: "Purposive sampling of users across 3 databases. Conducted 1.5hr interviews and usability testing." 
+    },
+    { 
+      title: "Analysis", 
+      date: "",
+      desc: "Structured thematic analysis of interview data to identify patterns in the troubleshooting journey." 
+    },
+    { 
+      title: "Reporting", 
+      date: "Apr 2023",
+      desc: "Findings: The journey is broken. No deterministic metrics to detect issues, and tools don't pinpoint root causes." 
+    },
+  ];
+
+  const implementationEvents = [
+    {
+      title: "Metric Development",
+      date: "Jun 2023",
+      desc: "Spanner engineering start work on a “deterministic” metric to confirm hotspotting using the research rubric."
+    },
+    {
+      title: "Cross-functional Review",
+      date: "Aug 2023",
+      desc: "Designs presented at “Topic de Jour”. Feedback highlighted a gap in explaining the complex engineering solution to lay audiences."
+    },
+    {
+      title: "Bridging the Gap",
+      date: "Sep 2023",
+      desc: "Sessions with Engineering to translate the solution for non-technical stakeholders, improving collaboration."
+    },
+    {
+      title: "Expansion & Testing",
+      date: "Sep 2023+",
+      desc: "Collaborating with Bigtable and Firestore teams. Concept testing with actual users scheduled for next year."
+    }
+  ];
+
   return (
-    <div className={`absolute top-0 left-0 w-full overflow-hidden z-0 transition-[height,background-color] duration-1000 ease-in-out ${shrinkOnMobile ? 'h-[45%] md:h-full' : 'h-full'} ${bgClass}`}>
+    <div className={`absolute top-0 left-0 w-full overflow-hidden z-0 transition-[height,background-color] duration-1000 ease-in-out ${effectiveShrinkOnMobile ? 'h-[45%] md:h-full' : 'h-full'} ${bgClass}`}>
       {/* Background Grid - Hidden on Solution/Title where we have custom full graphics */}
-      {currentSlideId !== SlideId.SOLUTION && currentSlideId !== SlideId.TITLE && currentSlideId !== SlideId.OBSERVABILITY && (
+      {currentSlideId !== SlideId.SOLUTION && currentSlideId !== SlideId.TITLE && currentSlideId !== SlideId.OBSERVABILITY && currentSlideId !== SlideId.METHODOLOGY && currentSlideId !== SlideId.IMPLEMENTATION && (
         <div className="absolute inset-0 opacity-20" 
           style={{ backgroundImage: 'radial-gradient(#475569 1px, transparent 1px)', backgroundSize: '30px 30px' }}>
         </div>
       )}
 
-      <div className="w-full h-full relative flex items-center justify-center md:justify-end md:pr-12">
+      {/* 
+         For Methodology/Implementation (Timeline), we center justify on desktop. 
+         For others, we justify end (right align).
+      */}
+      <div className={`w-full h-full relative flex items-center ${currentSlideId === SlideId.METHODOLOGY || currentSlideId === SlideId.IMPLEMENTATION ? 'md:justify-center' : 'md:justify-end md:pr-12'} justify-center`}>
         <AnimatePresence mode="wait">
             {currentSlideId === SlideId.CATALYST && (
               <motion.div 
@@ -505,6 +684,34 @@ export const Visualizer: React.FC<VisualizerProps> = ({ currentSlideId, shrinkOn
               </motion.div>
             )}
 
+             {/* Timeline Visual: Methodology */}
+             {currentSlideId === SlideId.METHODOLOGY && (
+              <motion.div
+                key="timeline-methodology"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.8 }}
+                className="absolute inset-0 w-full h-full z-10"
+              >
+                <TimelineVisual events={methodologyEvents} themeColor="indigo" />
+              </motion.div>
+            )}
+
+            {/* Timeline Visual: Implementation */}
+             {currentSlideId === SlideId.IMPLEMENTATION && (
+              <motion.div
+                key="timeline-implementation"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.8 }}
+                className="absolute inset-0 w-full h-full z-10"
+              >
+                <TimelineVisual events={implementationEvents} themeColor="emerald" />
+              </motion.div>
+            )}
+
             {/* Render High-Fidelity Mockup for Solution Slide */}
             {currentSlideId === SlideId.SOLUTION && (
               <motion.div 
@@ -515,7 +722,7 @@ export const Visualizer: React.FC<VisualizerProps> = ({ currentSlideId, shrinkOn
                 transition={{ duration: 1 }}
                 className="absolute inset-0 w-full h-full z-0"
               >
-                <HotspotInsightsVisual compact={shrinkOnMobile} />
+                <HotspotInsightsVisual compact={effectiveShrinkOnMobile} />
                 {/* Overlay Gradients to blend image into background and ensure text readability */}
                 <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/70 to-transparent pointer-events-none" />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent pointer-events-none" />
@@ -523,7 +730,7 @@ export const Visualizer: React.FC<VisualizerProps> = ({ currentSlideId, shrinkOn
             )}
         </AnimatePresence>
 
-        {currentSlideId !== SlideId.CATALYST && currentSlideId !== SlideId.SOLUTION && currentSlideId !== SlideId.OBSERVABILITY && (
+        {currentSlideId !== SlideId.CATALYST && currentSlideId !== SlideId.SOLUTION && currentSlideId !== SlideId.OBSERVABILITY && currentSlideId !== SlideId.METHODOLOGY && currentSlideId !== SlideId.IMPLEMENTATION && (
           <motion.svg 
             viewBox="0 0 100 100" 
             className="w-full h-full max-w-5xl max-h-screen absolute opacity-80 transition-transform duration-500 md:translate-x-[25%]"
