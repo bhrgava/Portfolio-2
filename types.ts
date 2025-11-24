@@ -4,6 +4,7 @@ export enum SlideId {
   OBSERVABILITY = 'observability',
   PREMISE = 'premise',
   HOTSPOT = 'hotspot',
+  EXISTING_TOOLS = 'existing_tools',
   METHODOLOGY = 'methodology',
   ACTION = 'action',
   IMPACT = 'impact',
@@ -19,6 +20,7 @@ export interface SlideData {
   details: string[];
   textDelay?: number;
   link?: string;
+  imageUrl?: string;
 }
 
 export interface CaseStudy {

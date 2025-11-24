@@ -1,7 +1,8 @@
 
+
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Database, Zap, AlertTriangle, Search, CheckCircle, ExternalLink, Sparkles, LayoutGrid, Activity, GitCommit, ListOrdered } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Database, Zap, AlertTriangle, Search, CheckCircle, ExternalLink, Sparkles, LayoutGrid, Activity, GitCommit, ListOrdered, Wrench } from 'lucide-react';
 import { SlideData, SlideId, CaseStudy } from '../types';
 
 interface StoryOverlayProps {
@@ -22,6 +23,7 @@ const getIcon = (id: SlideId) => {
     case SlideId.OBSERVABILITY: return <Activity className="w-10 h-10 text-cyan-400" />;
     case SlideId.PREMISE: return <Database className="w-10 h-10 text-emerald-400" />;
     case SlideId.HOTSPOT: return <Zap className="w-10 h-10 text-red-500" />;
+    case SlideId.EXISTING_TOOLS: return <Wrench className="w-10 h-10 text-slate-400" />;
     case SlideId.METHODOLOGY: return <ListOrdered className="w-10 h-10 text-indigo-400" />;
     case SlideId.ACTION: return <Search className="w-10 h-10 text-blue-400" />;
     case SlideId.IMPACT: return <AlertTriangle className="w-10 h-10 text-amber-400" />;
@@ -30,6 +32,48 @@ const getIcon = (id: SlideId) => {
     default: return <Database />;
   }
 };
+
+const TextContent = ({ slide, isTitle }: { slide: SlideData; isTitle: boolean }) => (
+  <>
+    <div className="flex items-center gap-4 mb-4">
+      <div className="p-3 bg-slate-900 rounded-lg border border-slate-700">
+        {getIcon(slide.id)}
+      </div>
+      <div>
+        <h4 className="text-slate-400 text-sm font-bold uppercase tracking-wider">
+          {slide.title}
+        </h4>
+        <h2 className={`font-bold text-white leading-tight ${isTitle ? 'text-4xl md:text-5xl' : 'text-2xl md:text-3xl'}`}>
+          {slide.subtitle}
+        </h2>
+      </div>
+    </div>
+    
+    <p className={`text-slate-300 leading-relaxed mb-6 ${isTitle ? 'text-xl md:text-2xl' : 'text-lg'}`}>
+      {slide.description}
+    </p>
+
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+      {slide.details.map((detail, i) => (
+        <div key={i} className="bg-slate-900/50 px-3 py-2 rounded border border-slate-800 text-xs text-slate-400 font-mono text-center">
+          {detail}
+        </div>
+      ))}
+    </div>
+
+    {slide.link && (
+      <a 
+        href={slide.link}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 font-semibold transition-colors text-sm uppercase tracking-wide group"
+      >
+        Read Documentation
+        <ExternalLink className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+      </a>
+    )}
+  </>
+);
 
 export const StoryOverlay: React.FC<StoryOverlayProps> = ({ 
   currentSlide, 
@@ -44,6 +88,7 @@ export const StoryOverlay: React.FC<StoryOverlayProps> = ({
 }) => {
   const isTitle = currentSlide.id === SlideId.TITLE;
   const isTimeline = currentSlide.id === SlideId.METHODOLOGY || currentSlide.id === SlideId.IMPLEMENTATION;
+  const hasImage = !!currentSlide.imageUrl;
   const activeCaseStudy = caseStudies[activeCaseStudyIndex];
 
   return (
@@ -120,45 +165,30 @@ export const StoryOverlay: React.FC<StoryOverlayProps> = ({
                   delay: currentSlide.textDelay ?? 0.5, // Delay entrance based on slide
                   ease: "easeOut" 
                 }}
-                // Conditionally make the card much wider for the Title slide
-                className={`bg-slate-950/80 backdrop-blur-md border border-slate-800 p-8 rounded-2xl ${isTitle ? 'max-w-4xl' : 'max-w-xl'} w-full shadow-2xl pointer-events-auto`}
+                className={`bg-slate-950/80 backdrop-blur-md border border-slate-800 rounded-2xl ${
+                  isTitle ? 'max-w-4xl' : (hasImage ? 'max-w-5xl' : 'max-w-xl')
+                } w-full shadow-2xl pointer-events-auto overflow-hidden`}
               >
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="p-3 bg-slate-900 rounded-lg border border-slate-700">
-                    {getIcon(currentSlide.id)}
-                  </div>
-                  <div>
-                    <h4 className="text-slate-400 text-sm font-bold uppercase tracking-wider">
-                      {currentSlide.title}
-                    </h4>
-                    <h2 className={`font-bold text-white leading-tight ${isTitle ? 'text-4xl md:text-5xl' : 'text-2xl md:text-3xl'}`}>
-                      {currentSlide.subtitle}
-                    </h2>
-                  </div>
-                </div>
-                
-                <p className={`text-slate-300 leading-relaxed mb-6 ${isTitle ? 'text-xl md:text-2xl' : 'text-lg'}`}>
-                  {currentSlide.description}
-                </p>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
-                  {currentSlide.details.map((detail, i) => (
-                    <div key={i} className="bg-slate-900/50 px-3 py-2 rounded border border-slate-800 text-xs text-slate-400 font-mono text-center">
-                      {detail}
+                {hasImage ? (
+                  <div className="flex flex-col md:flex-row items-stretch">
+                    <div className="p-8 w-full md:w-1/2 flex flex-col justify-center">
+                      <TextContent slide={currentSlide} isTitle={isTitle} />
                     </div>
-                  ))}
-                </div>
-
-                {currentSlide.link && (
-                  <a 
-                    href={currentSlide.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 font-semibold transition-colors text-sm uppercase tracking-wide group"
-                  >
-                    Read Documentation
-                    <ExternalLink className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </a>
+                    <div className="p-4 md:w-1/2 bg-black/20 flex items-center justify-center order-first md:order-last">
+                       <motion.img 
+                        src={currentSlide.imageUrl} 
+                        alt={currentSlide.title}
+                        className="rounded-lg shadow-lg object-contain max-h-full max-w-full"
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.5, delay: (currentSlide.textDelay ?? 0.5) + 0.3 }}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-8">
+                    <TextContent slide={currentSlide} isTitle={isTitle} />
+                  </div>
                 )}
               </motion.div>
             </AnimatePresence>

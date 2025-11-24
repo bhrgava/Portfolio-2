@@ -51,6 +51,15 @@ const SPANNER_SLIDES = [
     textDelay: 2.5,
   },
   {
+    id: SlideId.EXISTING_TOOLS,
+    title: "The Problem Space",
+    subtitle: "Existing Tools",
+    description: "The team had developed tools like Key Visualiser for this purpose but usage was not high and they were unsure whether it was useful.",
+    details: ["Low Adoption", "Unclear Value Prop", "Usability Concerns"],
+    textDelay: 2.0,
+    imageUrl: "https://docs.cloud.google.com/bigtable/img/keyvis-scan-example-2x.png",
+  },
+  {
     id: SlideId.METHODOLOGY,
     title: "The Process",
     subtitle: "Research Timeline",
@@ -101,7 +110,8 @@ const SPANNER_SLIDES = [
       "Gap Resolved",
     ],
     textDelay: 2.0,
-    link: "https://docs.cloud.google.com/spanner/docs/find-hotspots-in-database"
+    link: "https://docs.cloud.google.com/spanner/docs/find-hotspots-in-database",
+    imageUrl: "https://docs.cloud.google.com/static/spanner/docs/images/hotspot-insights.png",
   },
 ];
 

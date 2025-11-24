@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SlideId } from '../types';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 
 interface VisualizerProps {
   currentSlideId: SlideId;
@@ -485,79 +484,6 @@ const TimelineVisual = ({ events, themeColor }: { events: TimelineEvent[], theme
   );
 };
 
-// Recreated Hotspot Insights Dashboard for the Solution Slide
-const HotspotInsightsVisual = ({ compact }: { compact: boolean }) => {
-    const chartData = [
-        { time: '9:00', val: 0 },
-        { time: '9:05', val: 0 },
-        { time: '9:10', val: 60 }, 
-        { time: '9:15', val: 0 },
-        { time: '9:30', val: 0 },
-        { time: '9:35', val: 55 }, 
-        { time: '9:40', val: 85 }, 
-        { time: '9:45', val: 0 },
-        { time: '9:50', val: 45 }, 
-        { time: '9:55', val: 50 },
-        { time: '10:00', val: 0 },
-    ];
-
-    return (
-        <div className={`w-full h-full bg-[#0F172A] flex flex-col font-sans transition-all duration-1000 ${compact ? 'p-4 md:py-12 md:pr-12 md:pl-[35%]' : 'p-6 md:py-12 md:pr-12 md:pl-[35%]'}`}>
-            {/* Title Mock */}
-            <div className={`flex items-center justify-between border-b border-slate-800 transition-all duration-1000 ${compact ? 'mb-2 pb-2 pt-4 md:mb-8 md:pb-4 md:pt-0' : 'mb-8 pb-4 pt-12 md:pt-0'}`}>
-                <div className={`text-slate-200 font-medium transition-all ${compact ? 'text-sm md:text-lg' : 'text-lg'}`}>Peak split CPU usage score</div>
-                <div className="flex gap-4">
-                     <div className={`rounded bg-slate-800 transition-all ${compact ? 'w-4 h-4 md:w-6 md:h-6' : 'w-6 h-6'}`}></div>
-                     <div className={`rounded bg-slate-800 transition-all ${compact ? 'w-4 h-4 md:w-6 md:h-6' : 'w-6 h-6'}`}></div>
-                </div>
-            </div>
-
-            {/* Chart */}
-            <div className={`flex-1 min-h-0 relative transition-all duration-1000 ${compact ? 'mb-0 md:mb-8' : 'mb-8'}`}>
-                <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={chartData}>
-                        <defs>
-                             <linearGradient id="hotspotGradient" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                            </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-                         <XAxis dataKey="time" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
-                         <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} domain={[0, 100]} />
-                         <Area type="monotone" dataKey="val" stroke="#3b82f6" strokeWidth={2} fill="url(#hotspotGradient)" />
-                    </AreaChart>
-                </ResponsiveContainer>
-            </div>
-
-            {/* Table Mock - Always hidden on small mobile, visible on md */}
-             <div className="h-1/3 hidden md:block">
-                <div className="text-slate-200 text-lg font-medium mb-4">TopN splits</div>
-                <div className="w-full border-t border-slate-800">
-                    <div className="grid grid-cols-4 gap-4 py-3 border-b border-slate-800 text-slate-500 text-xs uppercase tracking-wider">
-                        <div>Interval end</div>
-                        <div>Split start</div>
-                        <div>Split limit</div>
-                        <div>CPU Score</div>
-                    </div>
-                     {/* Rows */}
-                     {[
-                         { end: '9:03:00 AM', score: 39 },
-                         { end: '9:04:00 AM', score: 69 },
-                         { end: '9:05:00 AM', score: 85 },
-                     ].map((row, i) => (
-                         <div key={i} className="grid grid-cols-4 gap-4 py-3 border-b border-slate-800/50 text-slate-400 text-sm font-mono">
-                             <div>{row.end}</div>
-                             <div className="text-slate-600">&lt;begin&gt;</div>
-                             <div className="text-slate-600">&lt;end&gt;</div>
-                             <div className="text-slate-200">{row.score}</div>
-                         </div>
-                     ))}
-                </div>
-             </div>
-        </div>
-    )
-}
 
 export const Visualizer: React.FC<VisualizerProps> = ({ currentSlideId, shrinkOnMobile }) => {
   const [particles, setParticles] = useState<any[]>([]);
@@ -640,22 +566,26 @@ export const Visualizer: React.FC<VisualizerProps> = ({ currentSlideId, shrinkOn
     }
   ];
 
+  const noGridSlides = [
+    SlideId.TITLE,
+    SlideId.OBSERVABILITY,
+    SlideId.METHODOLOGY,
+    SlideId.IMPLEMENTATION,
+  ];
+
   return (
     <div className={`absolute top-0 left-0 w-full overflow-hidden z-0 transition-[height,background-color] duration-1000 ease-in-out ${effectiveShrinkOnMobile ? 'h-[45%] md:h-full' : 'h-full'} ${bgClass}`}>
-      {/* Background Grid - Hidden on Solution/Title where we have custom full graphics */}
-      {currentSlideId !== SlideId.SOLUTION && currentSlideId !== SlideId.TITLE && currentSlideId !== SlideId.OBSERVABILITY && currentSlideId !== SlideId.METHODOLOGY && currentSlideId !== SlideId.IMPLEMENTATION && (
+      {/* Background Grid */}
+      {!noGridSlides.includes(currentSlideId) && (
         <div className="absolute inset-0 opacity-20" 
           style={{ backgroundImage: 'radial-gradient(#475569 1px, transparent 1px)', backgroundSize: '30px 30px' }}>
         </div>
       )}
 
-      {/* 
-         For Methodology/Implementation (Timeline), we center justify on desktop. 
-         For others, we justify end (right align).
-      */}
+      {/* Container for visuals */}
       <div className={`w-full h-full relative flex items-center ${currentSlideId === SlideId.METHODOLOGY || currentSlideId === SlideId.IMPLEMENTATION ? 'md:justify-center' : 'md:justify-end md:pr-12'} justify-center`}>
         <AnimatePresence mode="wait">
-
+            
             {/* New Observability Visual */}
             {currentSlideId === SlideId.OBSERVABILITY && (
               <motion.div
@@ -697,28 +627,18 @@ export const Visualizer: React.FC<VisualizerProps> = ({ currentSlideId, shrinkOn
                 <TimelineVisual events={implementationEvents} themeColor="emerald" />
               </motion.div>
             )}
-
-            {/* Render High-Fidelity Mockup for Solution Slide */}
-            {currentSlideId === SlideId.SOLUTION && (
-              <motion.div 
-                key="solution-mockup"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 1 }}
-                className="absolute inset-0 w-full h-full z-0"
-              >
-                <HotspotInsightsVisual compact={effectiveShrinkOnMobile} />
-                {/* Overlay Gradients to blend image into background and ensure text readability */}
-                <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/70 to-transparent pointer-events-none" />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent pointer-events-none" />
-              </motion.div>
-            )}
         </AnimatePresence>
 
-        {currentSlideId !== SlideId.SOLUTION && currentSlideId !== SlideId.OBSERVABILITY && currentSlideId !== SlideId.METHODOLOGY && currentSlideId !== SlideId.IMPLEMENTATION && (
+        {[
+          SlideId.TITLE,
+          SlideId.PREMISE,
+          SlideId.HOTSPOT,
+          SlideId.ACTION,
+          SlideId.IMPACT,
+          SlideId.SOLUTION // Now defaults to SVG container
+        ].includes(currentSlideId) && currentSlideId !== SlideId.OBSERVABILITY && currentSlideId !== SlideId.METHODOLOGY && currentSlideId !== SlideId.IMPLEMENTATION && currentSlideId !== SlideId.EXISTING_TOOLS && (
           <motion.svg 
-            viewBox="0 0 100 100" 
+            viewBox="0 0 125 100" 
             className="w-full h-full max-w-5xl max-h-screen absolute opacity-80 transition-transform duration-500 md:translate-x-[25%]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -770,6 +690,10 @@ export const Visualizer: React.FC<VisualizerProps> = ({ currentSlideId, shrinkOn
 
             {currentSlideId === SlideId.IMPACT && (
                <UserJourneyVisual resolved={false} />
+            )}
+             
+            {currentSlideId === SlideId.SOLUTION && (
+               <UserJourneyVisual resolved={true} />
             )}
           </motion.svg>
         )}
