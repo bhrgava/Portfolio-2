@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SlideId } from '../types';
@@ -635,7 +636,6 @@ export const Visualizer: React.FC<VisualizerProps> = ({ currentSlideId, shrinkOn
           SlideId.HOTSPOT,
           SlideId.ACTION,
           SlideId.IMPACT,
-          SlideId.SOLUTION // Now defaults to SVG container
         ].includes(currentSlideId) && currentSlideId !== SlideId.OBSERVABILITY && currentSlideId !== SlideId.METHODOLOGY && currentSlideId !== SlideId.IMPLEMENTATION && currentSlideId !== SlideId.EXISTING_TOOLS && (
           <motion.svg 
             viewBox="0 0 125 100" 
@@ -692,9 +692,7 @@ export const Visualizer: React.FC<VisualizerProps> = ({ currentSlideId, shrinkOn
                <UserJourneyVisual resolved={false} />
             )}
              
-            {currentSlideId === SlideId.SOLUTION && (
-               <UserJourneyVisual resolved={true} />
-            )}
+            {/* The SOLUTION slide no longer has a custom SVG visual, so it's removed from this condition */}
           </motion.svg>
         )}
       </div>
